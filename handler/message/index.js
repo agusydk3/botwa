@@ -78,7 +78,7 @@ module.exports = msgHandler = async (client = new Client(), message) => {
                 const mediaData = await decryptMedia(encryptMedia, uaOverride)
                 const imageBase64 = `data:${_mimetype};base64,${mediaData.toString('base64')}`
                 client.sendImageAsSticker(from, imageBase64).then(() => {
-                    client.reply(from, 'Sticker Akan Segera Dibuat Darling')
+                    client.reply(from, 'Ini Stiker Nya Daling')
                     console.log(`Sticker Processed for ${processTime(t, moment())} Second`)
                 })
             } else if (args[0] === 'nobg') {
@@ -91,7 +91,7 @@ module.exports = msgHandler = async (client = new Client(), message) => {
                 if (!isUrl(url)) { await client.reply(from, 'Maaf, link yang kamu kirim tidak valid. [Invalid Link]', id) }
                 client.sendStickerfromUrl(from, url).then((r) => (!r && r !== undefined)
                     ? client.sendText(from, 'Maaf, link yang kamu kirim tidak memuat gambar. [No Image]')
-                    : client.reply(from, 'Sticker Akan Segera Dibuat Darling')).then(() => console.log(`Sticker Processed for ${processTime(t, moment())} Second`))
+                    : client.reply(from, 'Ini Stiker Nya Daling')).then(() => console.log(`Sticker Processed for ${processTime(t, moment())} Second`))
             } else {
                 await client.reply(from, 'Tidak ada gambar! Untuk membuka daftar perintah kirim #menu [Wrong Format]', id)
             }
@@ -110,7 +110,7 @@ module.exports = msgHandler = async (client = new Client(), message) => {
                 const giphyCode = getGiphyCode[0].replace(/[-\/]/gi, '')
                 const smallGifUrl = 'https://media.giphy.com/media/' + giphyCode + '/giphy-downsized.gif'
                 client.sendGiphyAsSticker(from, smallGifUrl).then(() => {
-                    client.reply(from, 'Sticker Akan Segera Dibuat Darling')
+                    client.reply(from, 'Ini Stiker Nya Daling')
                     console.log(`Sticker Processed for ${processTime(t, moment())} Second`)
                 }).catch((err) => console.log(err))
             } else if (isMediaGiphy) {
@@ -118,7 +118,7 @@ module.exports = msgHandler = async (client = new Client(), message) => {
                 if (!gifUrl) { return client.reply(from, 'Gagal mengambil kode giphy', id) }
                 const smallGifUrl = url.replace(gifUrl[0], 'giphy-downsized.gif')
                 client.sendGiphyAsSticker(from, smallGifUrl).then(() => {
-                    client.reply(from, 'Sticker Akan Segera Dibuat Darling')
+                    client.reply(from, 'Ini Stiker Nya Daling')
                     console.log(`Sticker Processed for ${processTime(t, moment())} Second`)
                 }).catch((err) => console.log(err))
             } else {
