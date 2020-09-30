@@ -59,11 +59,6 @@ module.exports = msgHandler = async (client = new Client(), message) => {
         case 'help':
             await client.sendText(from, menuId.textMenu(pushname))
                 .then(() => ((isGroupMsg) && (isGroupAdmins)) ? client.sendText(from, 'Menu Admin Grup: *#menuadmin*') : null)
-            const caption = 'Untuk Donasi Agar Server Bot Ini Tetap Hidup Bisa Scan QR Dibawah Ya >///<'
-            await client.sendFileFromUrl(from, thumbnail, 'donate.jpg', caption, null, null, true)
-                 .then((serialized) => console.log('Pler Lo Pler'))
-                 .catch((err) => console.error(err))
-            })
             break
         case 'menuadmin':
             if (!isGroupMsg) return client.reply(from, 'Maaf, perintah ini hanya dapat dipakai didalam grup! [Group Only]', id)
@@ -73,6 +68,7 @@ module.exports = msgHandler = async (client = new Client(), message) => {
         case 'donate':
         case 'donasi':
             await client.sendText(from, menuId.textDonasi())
+			await client.sendFileFromUrl(from, thumbnail, 'donate.png', caption, null, null, true)
             break
         // Sticker Creator
         case 'sticker':
