@@ -1,112 +1,400 @@
-exports.textTnC = () => {
+exports.textReadme = () => {
     return `
-Source code / bot ini merupakan program open-source (gratis) yang ditulis menggunakan Javascript, kamu dapat menggunakan, menyalin, memodifikasi, menggabungkan, menerbitkan, mendistribusikan, mensublisensikan, dan atau menjual salinan dengan tanpa menghapus author utama dari source code / bot ini.
+MIT License
 
-Dengan menggunakan source code / bot ini maka anda setuju dengan Syarat dan Kondisi sebagai berikut:
-- Source code / bot tidak menyimpan data anda di server kami.
-- Source code / bot tidak bertanggung jawab atas sticker yang anda buat dari bot ini serta video, gambar maupun data lainnya yang anda dapatkan dari Source code / bot ini.
-- Source code / bot tidak boleh digunakan untuk layanan yang bertujuan/berkontribusi dalam: 
-    • seks / perdagangan manusia
-    • perjudian
-    • perilaku adiktif yang merugikan 
-    • kejahatan
-    • kekerasan (kecuali jika diperlukan untuk melindungi keselamatan publik)
-    • pembakaran hutan / penggundulan hutan
-    • ujaran kebencian atau diskriminasi berdasarkan usia, jenis kelamin, identitas gender, ras, seksualitas, agama, kebangsaan
-
-Source Code BOT : https://github.com/YogaSakti/imageToSticker
-NodeJS WhatsApp library: https://github.com/open-wa/wa-automate-nodejs
-
-Best regards, Yoga Sakti.`
+Copyright (c) 2020 SlavyanDesu
+    
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+    
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+    
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+    `
 }
 
-exports.textMenu = (pushname) => {
+exports.donate = () => {
     return `
-Hi Daling, ${pushname}! 👋️
-Berikut adalah beberapa fitur yang ada pada ZeroTwo Bot ini!✨
+    🎉 *TERIMA KASIH!* 🎉
 
-Sticker Creator:
-1. *#sticker*
-Untuk merubah gambar menjadi sticker. 
-Penggunaan: kirim gambar dengan caption #sticker atau balas gambar yang sudah dikirim dengan #sticker
+Merasa terbantu saat menggunakan bot ini? Atau sekedar kasihan sama owner yang jarang makan ini?
+Kamu bisa merealisasikan perasaan itu dengan cara donasi! Uang yang kalian pakai akan saya gunakan untuk memperpanjang masa aktif bot dan sisanya buat makan.
+Untuk Membeli Costum Cosplay ZeroTwo Buat Istri .
 
-2. *#sticker* _<Url Gambar>_
-Untuk merubah gambar dari url menjadi sticker. 
-Penggunaan: 
+Metode pembayaran:
+085866040557(DANA)
 
-3. *#gifsticker* _<Giphy URL>_ / *#stickergif* _<Giphy URL>_
-Untuk merubah gif menjadi sticker (Giphy Only)
-Penggunaan: Kirim pesan dengan format *gifsticker https://media.giphy.com/media/JUvI2c1ddyzkwK4RlV/giphy.gif*
+Terima kasih! 🙏
 
-4. *#memesticker* _<teks atas>_ | _<teks bawah>_
-Untuk membuat sticker meme dengan teks atas dan bawah
-Penggunaan: kirim gambar dengan caption _*#meme aku atas | kamu bawah*_, atau juga bisa dengan membalas gambar yang sudah ada.
+- AgusXD
+    `
+}
+
+exports.textMenu = () => {
+    return `
+    ⚠️ *ALL COMMANDS* ⚠️
+
+*ABAIKAN TANDA <>*
+Downloader:
+1. *$facebook*
+Untuk megunduh foto atau video dari Facebook.
+Aliases: *fb*
+Penggunaan: *$facebook https://www.facebook.com/...*
+
+2. *$instagram* [ERROR]
+Untuk megunduh foto atau video dari Instagram.
+Aliases: *ig*
+Penggunaan: *$instagram https://www.instagram.com/p/...*
+
+3. *$tiktok*
+Untuk mengunduh video dari TikTok.
+Aliases: -
+Penggunaan: *$tiktok https://www.tiktok.com/@xxxxx/video/...*
+
+4. *$twitter*
+Untuk megunduh foto atau video dari Twitter.
+Aliases: *twt*
+Penggunaan: *$twitter https://www.twitter.com/xxxxx/status/...*
+
+5. *$ytmp3*
+Untuk mengkonversi video YouTube ke MP3. Maksimal 10 menit.
+Aliases: -
+Penggunaan: *$ytmp3 https://youtu.be/9lBTqHdgerY*
+
+6. *$ytmp4*
+Untuk mengunduh video YouTube. Maksimal 10 menit.
+Aliases: -
+Penggunaan: *$ytmp4 https://youtu.be/9lBTqHdgerY*
+
+Sticker:
+1. *$sticker*
+Membuat custom sticker dari foto yang diberikan atau di-reply.
+Aliases: *stiker*
+Penggunaan: kirim gambar/link dengan caption *$sticker* atau balas gambar yang sudah dikirim dengan *$sticker*.
+
+Fun:
+1. *$ask*
+Tanya tentang apa saja dan saya akan menjawab secara random.
+Aliases: *8ball*
+Penggunaan:: *$ask* <pertanyaan>
+
+2. *$coinflip*
+Lempar koin.
+Aliases: *coin* - *flip*
+Penggunaan: *$coinflip*
+
+3. *$lenny*
+( ͡° ͜ʖ ͡°)
+Aliases: -
+Penggunaan: *$lenny*
+
+4. *$randomeme*
+Kirim random meme dari reddit.
+Aliases: *reddit*
+Penggunaan: *$randmeme*
+
+5. *$reverse*
+.nasilut nikilaB
+Aliases: - 
+Penggunaan: *$reverse* <teks>
+
+6. *$roll*
+Roll angka.
+Aliases: *dice*
+Penggunaan: *$roll*
+
+7. *$say*
+It's just a say command, whatd'ya expect?
+Aliases: *talk*
+Penggunaan: *$say* <teks>
+
+Utility:
+1. *$clock*
+Cek waktu Indonesia sekitar.
+Aliases: *waktu* - *jam*
+Penggunaan: *$clock*
+
+2. *$delete*
+Hapus pesan yang saya kirim.
+Aliases: *del*
+Penggunaan: reply pesan yang mau dihapus lalu ketik command *$delete*
+
+3. *$menu*
+Buka menu.
+Aliases: *help* - *h*
+Penggunaan: *$menu*
+
+4. *$ping*
+Cek kecepatan respon bot.
+Alias: *speed* - *p*
+Penggunaan: *$ping*
+
+5. *$readme*
+Isinya copyright buat source code doang.
+Alias: *tnc*
+Penggunaan: *$readme*
+
+6. *$server*
+Cek spesifikasi server.
+Aliases: -
+Penggunaan: *$server*
+
+7. *$status*
+Untuk cek status bot.
+Aliases: *stats*
+Penggunaan: *$status*
+
+Weeb Zone:
+1. *$waifu*
+Kirim foto waifu random.
+Aliases: -
+Penggunaan: *$waifu*
+
+2. *$wait*
+What anime is this? Identifikasi anime via foto.
+Aliases: -
+Penggunaan: kirim foto lalu tambahkan caption *$wait*
+    `
+}
+
+exports.textMenuHide = () => {
+    return `
+    ⚠️ *DILARANG SPAM* ⚠️
+
+            *LIST MENU*
+
+*$menu1* = Menu page 1 (Downloader) - UPDATED!
+*$menu2* = Menu page 2 (Sticker)
+*$menu3* = Menu page 3 (Fun)
+*$menu4* = Menu page 4 (Utility)
+*$menu5* = Menu page 5 (Weeb Zone)
+*$menuall* = Tampilkan semua command
+*$admin* = Menu khusus admin - UPDATED!
+*$donate* = Kasian bang ga ada duit
+
+
+Beliin saya nasi buat makan hari ini:
+085866040557(DANA)
+    `
+}
+
+exports.textMenu1 = () => {
+    return `
+> _Menu Page 1_
 
 Downloader:
-1. *#tiktok* _<tiktok url>_
-Untuk mengunduh video dari video tiktok.
-Penggunaan: kirim pesan dengan format *#tiktok https://www.tiktok.com/@itsandani/video/6869248690381425922* 
+1. *$facebook*
+Untuk megunduh foto atau video dari Facebook.
+Aliases: *fb*
+Penggunaan: *$facebook https://www.facebook.com/...*
 
-2. *#fb* _<post/video url>_
-Untuk mengunduh video dari Facebook.
-Penggunaan: kirim pesan dengan format *#fb https://www.facebook.com/.....*
+2. *$instagram* [ERROR]
+Untuk megunduh foto atau video dari Instagram.
+Aliases: *ig*
+Penggunaan: *$instagram https://www.instagram.com/p/...*
 
-3. *#ig* _<instagram post url>_
-Untuk mengunduh photo dan video dari instagram.
-Penggunaan: kirim pesan dengan format *#ig https://www.instagram.com/p/BPOd1vhDMIp/*
+3. *$tiktok*
+Untuk mengunduh video dari TikTok.
+Aliases: -
+Penggunaan: *$tiktok https://www.tiktok.com/@xxxxx/video/...*
 
-4. *#twt* _<twitter post url>_
-Untuk mengunduh photo dan video dari Twitter.
-Penggunaan: kirim pesan dengan format *#twt https://twitter.com/ntsana_/status/1306108656887324672*
+4. *$twitter*
+Untuk megunduh foto atau video dari Twitter.
+Aliases: *twt*
+Penggunaan: *$twitter https://www.twitter.com/xxxxx/status/...*
 
-Lain-lain:
-1. *#translate* _<kode bahasa>_
-Untuk mengartikan pesan menjadi bahasa yang ditentukan.
-Penggunaan: Balas/quote/reply pesan yang ingin kamu translate dengan _*#translate id*_ <- id adalah kode bahasa. kode bahasa dapat dilihat di *https://bit.ly/33FVldE*
+5. *$ytmp3*
+Untuk mengkonversi video YouTube ke MP3. Maksimal 10 menit.
+Aliases: -
+Penggunaan: *$ytmp3 https://youtu.be/9lBTqHdgerY*
 
-2. *#resi* _<kurir>_ _<nomer resi>_
-Untuk memeriksa status pengiriman barang, daftar kurir: jne, pos, tiki, wahana, jnt, rpx, sap, sicepat, pcp, jet, dse, first, ninja, lion, idl, rex.
-Penggunaan: kirim pesan dengan format _*#resi jne 1238757632*_
+6. *$ytmp4*
+Untuk mengunduh video YouTube. Maksimal 10 menit.
+Aliases: -
+Penggunaan: *$ytmp4 https://youtu.be/9lBTqHdgerY*
+`
+}
 
-3. *#meme* _<teks atas>_ | _<teks bawah>_
-Untuk membuat meme dengan teks atas dan bawah
-Penggunaan: kirim gambar dengan caption _*#meme aku atas | kamu bawah*_, atau juga bisa dengan membalas gambar yang sudah ada.
+exports.textMenu2 = () => {
+    return `
+> _Menu Page 2_
 
-4. *#ceklokasi*
-Cek lokasi penyebaran covid-19 di daerah sekitarmu (kelurahan).
-Penggunaan: kirimkan lokasimu lalu balas/quote/reply lokasi yang kamu kirim dengan _*#ceklokasi*_
+Sticker:
+1. *$sticker*
+Membuat custom sticker dari foto yang diberikan atau di-reply.
+Aliases: *stiker*
+Penggunaan: kirim gambar/link dengan caption *$sticker* atau balas gambar yang sudah dikirim dengan *$sticker*.
+    `
+}
 
-5. *#donasi*
-menampilkan informasi donasi.
+exports.textMenu3 = () => {
+    return `
+> _Menu Page 3_
 
-Hope you have a great day!✨`
+*ABAIKAN TANDA <>*
+Fun:
+1. *$ask*
+Tanya tentang apa saja dan saya akan menjawab secara random.
+Aliases: *8ball*
+Penggunaan:: *$ask* <pertanyaan>
+
+2. *$coinflip*
+Lempar koin.
+Aliases: *coin* - *flip*
+Penggunaan: *$coinflip*
+
+3. *$lenny*
+( ͡° ͜ʖ ͡°)
+Aliases: -
+Penggunaan: *$lenny*
+
+4. *$randomeme*
+Kirim random meme dari reddit.
+Aliases: *reddit*
+Penggunaan: *$randmeme*
+
+5. *$reverse*
+.nasilut nikilaB
+Aliases: - 
+Penggunaan: *$reverse* <teks>
+
+6. *$roll*
+Roll angka.
+Aliases: *dice*
+Penggunaan: *$roll*
+
+7. *$say*
+It's just a say command, whatd'ya expect?
+Aliases: *talk*
+Penggunaan: *$say* <teks>
+    `
+}
+
+exports.textMenu4 = () => {
+    return `
+> _Menu Page 4_
+
+*ABAIKAN TANDA <>*
+Utility:
+1. *$clock*
+Cek waktu Indonesia sekitar.
+Aliases: *waktu* - *jam*
+Penggunaan: *$clock*
+
+2. *$delete*
+Hapus pesan yang saya kirim.
+Aliases: *del*
+Penggunaan: reply pesan yang mau dihapus lalu ketik command *$delete*
+
+3. *$menu*
+Buka menu.
+Aliases: *help* - *h*
+Penggunaan: *$menu*
+
+4. *$ping*
+Cek kecepatan respon bot.
+Alias: *speed* - *p*
+Penggunaan: *$ping*
+
+5. *$readme*
+Isinya copyright buat source code doang.
+Alias: *tnc*
+Penggunaan: *$readme*
+
+6. *$server*
+Cek spesifikasi server.
+Aliases: -
+Penggunaan: *$server*
+
+7. *$status*
+Untuk cek status bot.
+Aliases: *stats*
+Penggunaan: *$status*
+    `
+}
+
+exports.textMenu5 = () => {
+    return `
+> _Menu Page 5_
+
+*ABAIKAN TANDA <>*
+Weeb Zone:
+1. *$waifu*
+Kirim foto waifu random.
+Aliases: -
+Penggunaan: *$waifu*
+
+2. *$wait*
+What anime is this? Identifikasi anime via foto.
+Aliases: -
+Penggunaan: kirim foto lalu tambahkan caption *$wait*
+    `
 }
 
 exports.textAdmin = () => {
     return `
-⚠ [ *Admin Group Only* ] ⚠ 
-Berikut adalah beberapa fitur admin grup yang ada pada ZeroTwo Bot ini!
+⚠️ [ *ADMIN ONLY* ] ⚠️
 
-1. *#kick* @user
-Untuk mengeluarkan member dari grup (bisa lebih dari 1).
+*ABAIKAN TANDA <>*
+Gunakan command ini jika admin terlalu malas:
+1. *$add*
+Tambahkan orang ke grup.
+Aliases:-
+Penggunaan: *$add* 62812xxxxxxxx
 
-2. *#promote* @user
-Untuk mempromosikan member menjadi Admin grup.
+2. *$demote*
+Lengserin admin.
+Aliases: -
+Penggunaan: *$demote* @member
 
-3. *#demote* @user
-Untuk demosikan Admin grup.
+3. *$kick*
+Untuk kick member rese.
+Aliases: -
+Penggunaan: *$kick* @member
 
-4. *#del*
-Untuk menghapus pesan bot (balas pesan bot dengan #del)`
+4. *$leave*
+Keluarkan saya dari grup.
+Aliases: *out* - *bye*
+Penggunaan: *$leave*
+
+5. *$linkgroup*
+Memberikan link group yang disinggahi.
+Aliases: *linkgrup*
+Penggunaan: *$linkgroup*
+
+6. *$promote*
+Naikin jabatan member ke admin.
+Aliases: -
+Penggunaan: *$promote* @member
+    `
 }
 
-exports.textDonasi = () => {
+exports.hiddenMenu = () => {
     return `
-Hai, terimakasih telah menggunakan bot ini, untuk mendukung bot ini kamu dapat membantu dengan berdonasi melalui link berikut:
-Saweria: https://saweria.co/agusydk3
+🔞 [ *NSFW* ] 🔞
 
-Donasi akan digunakan untuk pengembangan dan pengoperasian bot ini.
+*ABAIKAN TANDA <>*
+Command untuk ( ͡° ͜ʖ ͡°):
+1. *$fetish*
+Yang tersedia: *armpits*, *feets*, *thighs*, *booty*, *boobs*, *necks*, *belly*, *sideboobs*, dan *ahegao*.
+Command ini bersifat _case-sensitive_, jadi pastikan tag harus sesuai huruf besar kecilnya dan pengejaannya!
+Aliases: -
+Penggunaan: *$fetish* <tag>
 
-Terimakasih.
-Best regards, Agus Purba.`
+2. *$lewds*
+Kirim foto lewd secara random.
+Aliases: *lewd*
+Penggunaan: *$lewds*
+    `
 }
