@@ -1,41 +1,61 @@
 {
-  "name": "whatsapp-bot-sticker-creator",
-  "version": "10.0.0",
-  "description": "Whatsapp Bot - sticker creator",
+  "name": "simple-wa-bot",
+  "version": "0.2.3",
+  "description": "A simple WhatsApp bot!",
   "main": "index.js",
+  "engines": {
+    "node": "12.x",
+    "npm": "*"
+  },
   "scripts": {
     "start": "node index.js"
   },
-  "author": "Yoga Sakti",
+  "author": "SlavyanDesu",
   "repository": {
     "type": "git",
-    "url": "https://github.com/YogaSakti/imageToSticker.git"
+    "url": "git+https://github.com/SlavyanDesu/simple-wa-bot.git"
   },
   "bugs": {
-    "url": "https://github.com/YogaSakti/imageToSticker/issues"
+    "url": "https://github.com/SlavyanDesu/simple-wa-bot/issues"
   },
-  "homepage": "https://github.com/YogaSakti/imageToSticker",
-  "license": "ISC",
+  "homepage": "https://github.com/SlavyanDesu/simple-wa-bot",
+  "license": "MIT",
   "dependencies": {
-    "@open-wa/wa-automate": "^2.0.22",
+    "@open-wa/wa-automate": "^2.0.26",
+    "assert": "^2.0.0",
+    "axios": "^0.20.0",
     "chalk": "^4.1.0",
     "dotenv": "^8.2.0",
+    "figlet": "^1.5.0",
     "file-type": "^15.0.1",
-    "google-translate-open-api": "^1.3.5",
+    "fs": "0.0.1-security",
+    "fs-extra": "^9.0.1",
+    "genius-lyrics-api": "^3.0.3",
+    "got": "^11.7.0",
+    "https": "^1.0.0",
+    "instagram-fetcher": "^1.2.5",
     "moment-timezone": "^0.5.31",
+    "nhentai-api": "^3.0.2",
+    "nhentai-js": "^4.0.0",
     "node-fetch": "^2.6.1",
-    "remove.bg": "^1.3.0",
-    "sharp": "^0.26.0",
-    "tiktok-scraper": "^1.3.0",
+    "os": "^0.1.1",
+    "request": "^2.88.2",
+    "sagiri": "^3.1.0",
+    "sharp": "^0.26.1",
+    "tiktok-scraper": "^1.3.3",
     "video-url-link": "git+https://github.com/YogaSakti/video-url-link.git"
   },
   "devDependencies": {
     "babel-eslint": "^10.1.0",
-    "eslint": "^7.8.1",
+    "eslint": "^7.10.0",
     "eslint-config-standard": "^14.1.1",
-    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1"
-  }
+  },
+  "directories": {
+    "lib": "lib"
+  },
+  "keywords": []
 }
