@@ -1,330 +1,555 @@
-require('dotenv').config()
 const { decryptMedia, Client } = require('@open-wa/wa-automate')
 const moment = require('moment-timezone')
+const os = require('os')
+const axios = require('axios')
+const igm = require('instagram-fetcher')
 moment.tz.setDefault('Asia/Jakarta').locale('id')
-const { downloader, cekResi, removebg, urlShortener, meme, translate, getLocationData } = require('../../lib')
-const { msgFilter, color, processTime, isUrl } = require('../../utils')
-const mentionList = require('../../utils/mention')
-const { uploadImages } = require('../../utils/fetcher')
+const { downloader, urlShortener, meme, fetish, lewd, waifu } = require('../../lib')
+const { msgFilter, color, processTime, isUrl, isYt } = require('../../utils')
+const responses = [
+    'Adalah yoi',
+    'True min',
+    'Mana gw tau, emang gw bapaknya?',
+    'Se7',
+    'Jangan tanya gw lah',
+    'Gak',
+    'Ya',
+    'Adalah false',
+    'Adalah true',
+    'Puguh',
+    'G u bau',
+    'Cari tau sendiri lah',
+    'Keknya sih iya',
+    'Keknya sih nggak',
+    'Lah serius?',
+    'Anjir',
+    'Gak tau',
+    'Pukimak',
+    'Meureun, gw juga gak tau sih',
+    'Kagak',
+    'Setelah gw pikir sih gak mungkin',
+    'Setelah gw pikir sih mungkin aja',
+    'Y',
+    'G',
+    'Terserah',
+    'Terserah lu',
+    'Tul',
+    'Hah?',
+    'Ngetik apaan? Burem'
+]
 
-const { menuId, menuEn } = require('./text') // Indonesian & English menu
+const { menuId } = require('./text') // For help command
 
 module.exports = msgHandler = async (client = new Client(), message) => {
     try {
         const { type, id, from, t, sender, isGroupMsg, chat, caption, isMedia, mimetype, quotedMsg, quotedMsgObj, mentionedJidList } = message
         let { body } = message
         const { name, formattedTitle } = chat
-        let { pushname, verifiedName, formattedName } = sender
-        pushname = pushname || verifiedName || formattedName // verifiedName is the name of someone who uses a business account
+        let { pushname, verifiedName } = sender
+        pushname = pushname || verifiedName
         const botNumber = await client.getHostNumber() + '@c.us'
         const groupId = isGroupMsg ? chat.groupMetadata.id : ''
         const groupAdmins = isGroupMsg ? await client.getGroupAdmins(groupId) : ''
-        const groupMembers = isGroupMsg ? await client.getGroupMembersId(groupId) : ''
         const isGroupAdmins = groupAdmins.includes(sender.id) || false
         const isBotGroupAdmins = groupAdmins.includes(botNumber) || false
 
-        // Bot Prefix
-        const prefix = '#'
+        // Bot prefix
+        const prefix = '$'
         body = (type === 'chat' && body.startsWith(prefix)) ? body : ((type === 'image' && caption) && caption.startsWith(prefix)) ? caption : ''
         const command = body.slice(1).trim().split(/ +/).shift().toLowerCase()
-        const arg = body.trim().substring(body.indexOf(' ') + 1)
         const args = body.trim().split(/ +/).slice(1)
         const isCmd = body.startsWith(prefix)
-        const uaOverride = process.env.UserAgent
+        const uaOverride = 'WhatsApp/2.2029.4 Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36'
         const url = args.length !== 0 ? args[0] : ''
         const isQuotedImage = quotedMsg && quotedMsg.type === 'image'
 
-        // [BETA] Avoid Spam Message
+        // Avoid spam
         if (isCmd && msgFilter.isFiltered(from) && !isGroupMsg) { return console.log(color('[SPAM]', 'red'), color(moment(t * 1000).format('DD/MM/YY HH:mm:ss'), 'yellow'), color(`${command} [${args.length}]`), 'from', color(pushname)) }
         if (isCmd && msgFilter.isFiltered(from) && isGroupMsg) { return console.log(color('[SPAM]', 'red'), color(moment(t * 1000).format('DD/MM/YY HH:mm:ss'), 'yellow'), color(`${command} [${args.length}]`), 'from', color(pushname), 'in', color(name || formattedTitle)) }
-        //
+
+        // Message log
         if (!isCmd && !isGroupMsg) { return console.log('[RECV]', color(moment(t * 1000).format('DD/MM/YY HH:mm:ss'), 'yellow'), 'Message from', color(pushname)) }
         if (!isCmd && isGroupMsg) { return console.log('[RECV]', color(moment(t * 1000).format('DD/MM/YY HH:mm:ss'), 'yellow'), 'Message from', color(pushname), 'in', color(name || formattedTitle)) }
         if (isCmd && !isGroupMsg) { console.log(color('[EXEC]'), color(moment(t * 1000).format('DD/MM/YY HH:mm:ss'), 'yellow'), color(`${command} [${args.length}]`), 'from', color(pushname)) }
         if (isCmd && isGroupMsg) { console.log(color('[EXEC]'), color(moment(t * 1000).format('DD/MM/YY HH:mm:ss'), 'yellow'), color(`${command} [${args.length}]`), 'from', color(pushname), 'in', color(name || formattedTitle)) }
 
-        // [BETA] Avoid Spam Message
+        // Avoid spam
         msgFilter.addFilter(from)
 
         switch (command) {
-        // Menu and TnC
-        case 'speed':
-        case 'ping':
-            await client.sendText(from, `Pong!!!!\nSpeed: ${processTime(t, moment())} _Second_`)
-            break
-        case 'tnc':
-            await client.sendText(from, menuId.textTnC())
-            break
-        case 'menu':
-        case 'help':
-            await client.sendText(from, menuId.textMenu(pushname))
-                .then(() => ((isGroupMsg) && (isGroupAdmins)) ? client.sendText(from, 'Menu Admin Grup: *#menuadmin*') : null)
-            break
-        case 'menuadmin':
-            if (!isGroupMsg) return client.reply(from, 'Maaf, perintah ini hanya dapat dipakai didalam grup! [Group Only]', id)
-            if (!isGroupAdmins) return client.reply(from, 'Gagal, perintah ini hanya dapat digunakan oleh admin grup! [Admin Group Only]', id)
-            await client.sendText(from, menuId.textAdmin())
-            break
-        case 'donate':
-        case 'donasi':
-            await client.sendText(from, menuId.textDonasi())
-			await client.sendFileFromUrl(from, thumbnail, 'donate.png', caption, null, null, true)
-            break
-        // Sticker Creator
-        case 'sticker':
-        case 'stiker': {
-            if ((isMedia || isQuotedImage) && args.length === 0) {
-                const encryptMedia = isQuotedImage ? quotedMsg : message
-                const _mimetype = isQuotedImage ? quotedMsg.mimetype : mimetype
-                const mediaData = await decryptMedia(encryptMedia, uaOverride)
-                const imageBase64 = `data:${_mimetype};base64,${mediaData.toString('base64')}`
-                client.sendImageAsSticker(from, imageBase64).then(() => {
-                    client.reply(from, 'Ini Stiker Nya Daling')
-                    console.log(`Sticker Processed for ${processTime(t, moment())} Second`)
-                })
-            } else if (args[0] === 'nobg') {
-                /**
-                * This is Premium feature.
-                * Check premium feature at https://trakteer.id/red-emperor/showcase or chat Author for Information.
-                */
-                client.reply(from, 'ehhh, what\'s that???', id)
-            } else if (args.length === 1) {
-                if (!isUrl(url)) { await client.reply(from, 'Maaf, link yang kamu kirim tidak valid. [Invalid Link]', id) }
-                client.sendStickerfromUrl(from, url).then((r) => (!r && r !== undefined)
-                    ? client.sendText(from, 'Maaf, link yang kamu kirim tidak memuat gambar. [No Image]')
-                    : client.reply(from, 'Ini Stiker Nya Daling')).then(() => console.log(`Sticker Processed for ${processTime(t, moment())} Second`))
-            } else {
-                await client.reply(from, 'Tidak ada gambar! Untuk membuka daftar perintah kirim #menu [Wrong Format]', id)
-            }
-            break
-        }
-        case 'stikergif':
-        case 'stickergif':
-        case 'gifstiker':
-        case 'gifsticker': {
-            if (args.length !== 1) return client.reply(from, 'Maaf, format pesan salah silahkan periksa menu. [Wrong Format]', id)
-            const isGiphy = url.match(new RegExp(/https?:\/\/(www\.)?giphy.com/, 'gi'))
-            const isMediaGiphy = url.match(new RegExp(/https?:\/\/media.giphy.com\/media/, 'gi'))
-            if (isGiphy) {
-                const getGiphyCode = url.match(new RegExp(/(\/|\-)(?:.(?!(\/|\-)))+$/, 'gi'))
-                if (!getGiphyCode) { return client.reply(from, 'Gagal mengambil kode giphy', id) }
-                const giphyCode = getGiphyCode[0].replace(/[-\/]/gi, '')
-                const smallGifUrl = 'https://media.giphy.com/media/' + giphyCode + '/giphy-downsized.gif'
-                client.sendGiphyAsSticker(from, smallGifUrl).then(() => {
-                    client.reply(from, 'Ini Stiker Nya Daling')
-                    console.log(`Sticker Processed for ${processTime(t, moment())} Second`)
-                }).catch((err) => console.log(err))
-            } else if (isMediaGiphy) {
-                const gifUrl = url.match(new RegExp(/(giphy|source).(gif|mp4)/, 'gi'))
-                if (!gifUrl) { return client.reply(from, 'Gagal mengambil kode giphy', id) }
-                const smallGifUrl = url.replace(gifUrl[0], 'giphy-downsized.gif')
-                client.sendGiphyAsSticker(from, smallGifUrl).then(() => {
-                    client.reply(from, 'Ini Stiker Nya Daling')
-                    console.log(`Sticker Processed for ${processTime(t, moment())} Second`)
-                }).catch((err) => console.log(err))
-            } else {
-                await client.reply(from, 'maaf, untuk saat ini sticker gif hanya bisa menggunakan link dari giphy.  [Giphy Only]', id)
-            }
-            break
-        }
-        // Video Downloader
-        case 'tiktok':
-            if (args.length !== 1) return client.reply(from, 'Maaf, format pesan salah silahkan periksa menu. [Wrong Format]', id)
-            if (!isUrl(url) && !url.includes('tiktok.com')) return client.reply(from, 'Maaf, link yang kamu kirim tidak valid. [Invalid Link]', id)
-            await client.reply(from, `_Scraping Metadata..._ \n\n${menuId.textDonasi()}`, id)
-            downloader.tiktok(url).then(async (videoMeta) => {
-                const filename = videoMeta.authorMeta.name + '.mp4'
-                const caps = `*Metadata:*\nUsername: ${videoMeta.authorMeta.name} \nMusic: ${videoMeta.musicMeta.musicName} \nView: ${videoMeta.playCount.toLocaleString()} \nLike: ${videoMeta.diggCount.toLocaleString()} \nComment: ${videoMeta.commentCount.toLocaleString()} \nShare: ${videoMeta.shareCount.toLocaleString()} \nCaption: ${videoMeta.text.trim() ? videoMeta.text : '-'}`
-                await client.sendFileFromUrl(from, videoMeta.url, filename, videoMeta.NoWaterMark ? caps : `⚠ Video tanpa watermark tidak tersedia. \n\n${caps}`, '', { headers: { 'User-Agent': 'okhttp/4.5.0', referer: 'https://www.tiktok.com/' } }, true)
-                    .then((serialized) => console.log(`Sukses Mengirim File dengan id: ${serialized} diproses selama ${processTime(t, moment())}`))
+            // Downloader
+            case 'facebook':
+            case 'fb':
+                if (args.length !== 1) return client.reply(from, '⚠️ Format salah! Ketik *$menu* untuk penggunaan. [WRONG FORMAT]', id)
+                if (!isUrl(url) && !url.includes('facebook.com')) return client.reply(from, '⚠️ Link tidak valid! [INVALID]', id)
+                await client.reply(from, '_Mohon tunggu sebentar ya daling, proses ini akan memakan waktu beberapa menit..._\n\nMerasa terbantu karena bot ini? Bantu saya dengan cara donasi melalui:\n085866040557 (DANA)\n\nTerima kasih 🙏', id)
+                downloader.facebook(url)
+                .then(async (videoMeta) => {
+                    const title = videoMeta.response.title
+                    const thumbnail = videoMeta.response.thumbnail
+                    const links = videoMeta.response.links
+                    const shorts = []
+                    for (let i = 0; i < links.length; i++) {
+                        const shortener = await urlShortener(links[i].url)
+                        console.log('Shortlink: ' + shortener)
+                        links[i].short = shortener
+                        shorts.push(links[i])
+                    }
+                    const link = shorts.map((x) => `${x.resolution} Quality: ${x.short}`)
+                    const caption = `Teks: ${title} \n\nLink download: \n${link.join('\n')} \n\nBerhasil diproses selama ${processTime(t, moment())} detik`
+                    await client.sendFileFromUrl(from, thumbnail, 'videos.jpg', caption, null, null, true)
+                    .then((serialized) => console.log(`Sukses mengirm file dengan ID: ${serialized} diproses selama ${processTime(t, moment())}`))
                     .catch((err) => console.error(err))
-            }).catch(() => client.reply(from, 'Gagal mengambil metadata, link yang kamu kirim tidak valid. [Invalid Link]', id))
-            break
-        case 'ig':
-        case 'instagram':
-            if (args.length !== 1) return client.reply(from, 'Maaf, format pesan salah silahkan periksa menu. [Wrong Format]', id)
-            if (!isUrl(url) && !url.includes('instagram.com')) return client.reply(from, 'Maaf, link yang kamu kirim tidak valid. [Invalid Link]', id)
-            await client.reply(from, `_Scraping Metadata..._ \n\n${menuId.textDonasi()}`, id)
-            downloader.insta(url).then(async (data) => {
-                if (data.type == 'GraphSidecar') {
-                    if (data.image.length != 0) {
-                        data.image.map((x) => client.sendFileFromUrl(from, x, 'photo.jpg', '', null, null, true))
-                            .then((serialized) => console.log(`Sukses Mengirim File dengan id: ${serialized} diproses selama ${processTime(t, moment())}`))
-                            .catch((err) => console.error(err))
-                    }
-                    if (data.video.length != 0) {
-                        data.video.map((x) => client.sendFileFromUrl(from, x.videoUrl, 'video.jpg', '', null, null, true))
-                            .then((serialized) => console.log(`Sukses Mengirim File dengan id: ${serialized} diproses selama ${processTime(t, moment())}`))
-                            .catch((err) => console.error(err))
-                    }
-                } else if (data.type == 'GraphImage') {
-                    client.sendFileFromUrl(from, data.image, 'photo.jpg', '', null, null, true)
-                        .then((serialized) => console.log(`Sukses Mengirim File dengan id: ${serialized} diproses selama ${processTime(t, moment())}`))
-                        .catch((err) => console.error(err))
-                } else if (data.type == 'GraphVideo') {
-                    client.sendFileFromUrl(from, data.video.videoUrl, 'video.mp4', '', null, null, true)
-                        .then((serialized) => console.log(`Sukses Mengirim File dengan id: ${serialized} diproses selama ${processTime(t, moment())}`))
-                        .catch((err) => console.error(err))
-                }
-            })
+                })
                 .catch((err) => {
-                    if (err === 'Not a video') { return client.reply(from, 'Error, tidak ada video di link yang kamu kirim. [Invalid Link]', id) }
-                    client.reply(from, 'Error, user private atau link salah [Private or Invalid Link]', id)
+                    console.error(err)
+                    client.reply(from, `⚠️ Terjadi kesalahan! [ERR]\n\n${err}`, id)
                 })
             break
-        case 'twt':
-        case 'twitter':
-            if (args.length !== 1) return client.reply(from, 'Maaf, format pesan salah silahkan periksa menu. [Wrong Format]', id)
-            if (!isUrl(url) & !url.includes('twitter.com') || url.includes('t.co')) return client.reply(from, 'Maaf, url yang kamu kirim tidak valid. [Invalid Link]', id)
-            await client.reply(from, `_Scraping Metadata..._ \n\n${menuId.textDonasi()}`, id)
-            downloader.tweet(url).then(async (data) => {
-                if (data.type === 'video') {
-                    const content = data.variants.filter(x => x.content_type !== 'application/x-mpegURL').sort((a, b) => b.bitrate - a.bitrate)
-                    const result = await urlShortener(content[0].url)
-                    console.log('Shortlink: ' + result)
-                    await client.sendFileFromUrl(from, content[0].url, 'video.mp4', `Link Download: ${result} \n\nProcessed for ${processTime(t, moment())} _Second_`, null, null, true)
-                        .then((serialized) => console.log(`Sukses Mengirim File dengan id: ${serialized} diproses selama ${processTime(t, moment())}`))
+            case 'instagram':
+            case 'ig':
+                if (args.length !== 1) return client.reply(from, '⚠️ Format salah! Ketik *$menu1* untuk penggunaan. [WRONG FORMAT]', id)
+                if (!isUrl(url) && !url.includes('instagram.com')) return client.reply(from, '⚠️ Link tidak valid! [INVALID]', id)
+                client.reply(from, '_Mohon tunggu sebentar ya daling, proses ini akan memakan waktu beberapa menit..._\n\nMerasa terbantu karena bot ini? Bantu saya dengan cara donasi melalui:\n085866040557 (DANA)\n\nTerima kasih 🙏', id)
+                const link = igm.download(url)
+                await client.sendFileFromUrl(from, link, '', '', null, null, true)
+                .then(() => console.log('Sukses mengirim file!'))
+                .catch((err) => {
+                    console.error(err)
+                    client.reply(from, `⚠️ Terjadi kesalahan!\n\n${err}`)
+                })
+            break
+            case 'tiktok':
+                if (args.length !== 1) return client.reply(from, '⚠️ Format salah! Ketik *$menu1* untuk penggunaan. [WRONG FORMAT]', id)
+                if (!isUrl(url) && !url.includes('tiktok.com')) return client.reply(from, '⚠️ Link tidak valid! [INVALID]', id)
+                await client.reply(from, `_Mohon tunggu sebentar ya daling, proses ini akan memakan waktu beberapa menit..._\n\nMerasa terbantu karena bot ini? Bantu saya dengan cara donasi melalui:\n085866040557 (DANA)\n\nTerima kasih 🙏`, id)
+                downloader.tiktok(url)
+                .then(async (videoMeta) => {
+                        const filename = videoMeta.authorMeta.name + '.mp4'
+                        const caps = `*\nUsername: ${videoMeta.authorMeta.name} \nMusic: ${videoMeta.musicMeta.musicName} \nView: ${videoMeta.playCount.toLocaleString()} \nLike: ${videoMeta.diggCount.toLocaleString()} \nComment: ${videoMeta.commentCount.toLocaleString()} \nShare: ${videoMeta.shareCount.toLocaleString()} \nCaption: ${videoMeta.text.trim() ? videoMeta.text : '-'}`
+                        await client.sendFileFromUrl(from, videoMeta.url, filename, videoMeta.NoWaterMark ? caps : `⚠ Video tanpa watermark tidak tersedia. \n\n${caps}`, '', { headers: { 'User-Agent': 'okhttp/4.5.0', referer: 'https://www.tiktok.com/' } }, true)
+                        .then((serialized) => console.log(`Sukses Mengirim file dengan ID: ${serialized} diproses selama ${processTime(t, moment())} detik`))
                         .catch((err) => console.error(err))
-                } else if (data.type === 'photo') {
-                    for (let i = 0; i < data.variants.length; i++) {
-                        await client.sendFileFromUrl(from, data.variants[i], data.variants[i].split('/media/')[1], '', null, null, true)
-                            .then((serialized) => console.log(`Sukses Mengirim File dengan id: ${serialized} diproses selama ${processTime(t, moment())}`))
+                })
+                .catch(() => client.reply(from, '⚠️ Link tidak valid! [INVALID]', id))
+            break
+            case 'twitter':
+            case 'twt':
+                if (args.length !== 1) return client.reply(from, '⚠️ Format salah! Ketik *$menu1* untuk penggunaan. [WRONG FORMAT]', id)
+                if (!isUrl(url) && !url.includes('twitter.com') || url.includes('t.co')) return client.reply(from, '⚠️ Link tidak valid! [INVALID]', id)
+                await client.reply(from, '_Mohon tunggu sebentar ya daling, proses ini akan memakan waktu beberapa menit..._\n\nMerasa terbantu karena bot ini? Bantu saya dengan cara donasi melalui:\n085866040557 (DANA)\n\nTerima kasih 🙏', id)
+                downloader.tweet(url)
+                .then(async (data) => {
+                    if (data.type === 'video') {
+                        const content = data.variants.filter(x => x.content_type !== 'application/x-mpegURL').sort((a, b) => b.bitrate - a.bitrate)
+                        const result = await urlShortener(content[0].url)
+                        console.log('Shortlink: ' + result)
+                        await client.sendFileFromUrl(from, content[0].url, 'video.mp4', `Link download: ${result} \n\nBerhasil diproses selama ${processTime(t, moment())} detik`, null, null, true)
+                        .then((serialized) => console.log(`Sukses mengirim file dengan ID: ${serialized} diproses selama ${processTime(t, moment())} detik`))
+                        .catch((err) => console.error(err))
+                    } else if (data.type === 'photo') {
+                        for (let i = 0; i < data.variants.length; i++) {
+                            await client.sendFileFromUrl(from, data.variants[i], data.variants[i].split('/media/')[1], '', null, null, true)
+                            .then((serialized) => console.log(`Sukses mengirim file dengan ID: ${serialized} diproses selama ${processTime(t, moment())} detik`))
                             .catch((err) => console.error(err))
+                        }
                     }
+                })
+                .catch((err) => {
+                    console.error(err)
+                    client.reply(from, `⚠️ Terjadi kesalahan! [ERR]\n\n${err}`, id)
+                })
+            break
+            case 'ytmp3':
+                if (args.length !== 1) return client.reply(from, '⚠️ Format salah! Ketik *$menu1* untuk penggunaan. [WRONG FORMAT]', id)
+                if (!isYt(url)) return client.reply(from, '⚠️ Link tidak valid! [INVALID]', id)
+                await client.reply(from, '_Mohon tunggu sebentar ya daling, proses ini akan memakan waktu beberapa menit..._\n\nMerasa terbantu karena bot ini? Bantu saya dengan cara donasi melalui:\n085866040557 (DANA)\n\nTerima kasih 🙏', id)
+                axios.get('https://mhankbarbar.herokuapp.com/api/yta?url=' + url)
+                .then(async function (response) {
+                    console.log('Get metadata from => ' + url)
+                    if (response.data.status === 200) {
+                        await client.sendFileFromUrl(from, response.data.result, `${response.data.title}.mp3`, `Sukses mengirim file! Diproses selama ${processTime(t, moment())} detik`, null, null, true)
+                        .then(() => console.log(`Sukses mengirim file! Diproses selama ${processTime(t, moment())} detik`))
+                        .catch((err) => console.error(err))
+                    }
+                })
+                .catch((err) => {
+                    console.error(err)
+                    client.reply(from, `⚠️ Terjadi kesalahan! [ERR]\n\n${err}`)
+                })
+            break
+            case 'ytmp4':
+                if (args.length !== 1) return client.reply(from, '⚠️ Format salah! Ketik *$menu1* untuk penggunaan. [WRONG FORMAT]', id)
+                if (!isYt(url)) return client.reply(from, '⚠️ Link tidak valid! [INVALID]', id)
+                await client.reply(from, '_Mohon tunggu sebentar ya daling, proses ini akan memakan waktu beberapa menit..._\n\nMerasa terbantu karena bot ini? Bantu saya dengan cara donasi melalui:\n085866040557 (DANA)\n\nTerima kasih 🙏', id)
+                axios.get('https://mhankbarbar.herokuapp.com/api/ytv?url=' + url)
+                .then(async function (response) {
+                    console.log('Get metadata from => ' + url)
+                    if (response.data.status === 200) {
+                        await client.sendFileFromUrl(from, response.data.result, `${response.data.title}.mp4`, `Sukses mengirim file! Diproses selama ${processTime(t, moment())} detik`, null, null, true)
+                        .then(() => console.log(`Sukses mengirim file! Diproses selama ${processTime(t, moment())}`))
+                        .catch((err) => console.error(err))
+                    }
+                })
+                .catch((err) => {
+                    console.error(err)
+                    client.reply(from, `⚠️ Terjadi kesalahan! [ERR]\n\n${err}`)
+                })
+            break
+
+            // Sticker
+            case 'sticker':
+            case 'stiker': 
+                if ((isMedia || isQuotedImage) && args.length === 0) {
+                    await client.reply(from, '_Mohon tunggu sebentar ya daling, proses ini akan memakan waktu beberapa menit..._\n\nMerasa terbantu karena bot ini? Bantu saya dengan cara donasi melalui:\n085866040557 (DANA)\n\nTerima kasih 🙏', id)
+                    const encryptMedia = isQuotedImage ? quotedMsg : message
+                    const _mimetype = isQuotedImage ? quotedMsg.mimetype : mimetype
+                    const mediaData = await decryptMedia(encryptMedia, uaOverride)
+                    const imageBase64 = `data:${_mimetype};base64,${mediaData.toString('base64')}`
+                    await client.sendImageAsSticker(from, imageBase64).then(() => {
+                        client.reply(from, 'Silakan')
+                        console.log(`Sticker processed for ${processTime(t, moment())} second`)
+                    })
+                } else if (args.length === 1) {
+                    if (!isUrl(url)) { return await client.reply(from, '⚠️ Link tidak valid!', id) }
+                    await client.sendStickerfromUrl(from, url).then((r) => (!r && r !== undefined)
+                        ? client.sendText(from, '⚠️ Link yang dikirim tidak dapat dimuat! [CANNOT LOAD]')
+                        : client.reply(from, 'Silakan')).then(() => console.log(`Sticker processed for ${processTime(t, moment())} second`))
+                } else {
+                    client.reply(from, '⚠️ Format salah! Ketik *$menu2* untuk penggunaan. [WRONG FORMAT]', id)
                 }
-            })
-                .catch(() => client.sendText(from, 'Maaf, link tidak valid atau tidak ada media di link yang kamu kirim. [Invalid Link]'))
             break
-        case 'fb':
-        case 'facebook':
-            if (args.length !== 1) return client.reply(from, 'Maaf, format pesan salah silahkan periksa menu. [Wrong Format]', id)
-            if (!isUrl(url) && !url.includes('facebook.com')) return client.reply(from, 'Maaf, url yang kamu kirim tidak valid. [Invalid Link]', id)
-            await client.reply(from, '_Scraping Metadata..._ \n\nTerimakasih telah menggunakan bot ini, kamu dapat membantu pengembangan bot ini dengan menyawer melalui https://saweria.co/agusydk3 \nTerimakasih.', id)
-            downloader.facebook(url).then(async (videoMeta) => {
-                const title = videoMeta.response.title
-                const thumbnail = videoMeta.response.thumbnail
-                const links = videoMeta.response.links
-                const shorts = []
-                for (let i = 0; i < links.length; i++) {
-                    const shortener = await urlShortener(links[i].url)
-                    console.log('Shortlink: ' + shortener)
-                    links[i].short = shortener
-                    shorts.push(links[i])
+
+            // Fun
+            case 'ask':
+            case '8ball':
+                const question = args.join(' ')
+                const answer = responses[Math.floor(Math.random() * (responses.length))]
+                if (!question) return client.reply(from, '⚠️ Format salah! Ketik *$menu3* untuk penggunaan. [WRONG FORMAT]')
+                await client.sendText(from, `Pertanyaan: *${question}* \n\nJawaban: ${answer}`)
+            break
+            case 'coinflip':
+            case 'coin':
+            case 'flip':
+                const coin = [
+                    'Heads',
+                    'Tails'
+                ]
+                const random = coin[Math.floor(Math.random() * (coin.length))]
+                await client.reply(from, `Kamu mendapatkan bagian *${random}*`)
+            break
+            case 'lenny':
+                client.reply(from, '( ͡° ͜ʖ ͡°)', id)
+            break
+            case 'randomeme':
+            case 'reddit':
+                await client.reply(from, '_Mohon tunggu sebentar, proses ini akan memakan waktu beberapa menit..._\n\nMerasa terbantu karena bot ini? Bantu saya dengan cara donasi melalui pulsa:\n081294958473 (Telkomsel)\n081294958473 (OVO)\n\nTerima kasih 🙏', id)
+                meme.random()
+                .then(({ subreddit, title, url, author }) => {
+                    client.sendFileFromUrl(from, `${url}`, 'meme.jpg', `${title}\nTag: r/${subreddit}\nAuthor: u/${author}`, null, null, true)
+                })
+                .catch((err) => {
+                    console.error(err)
+                    client.reply(from, `⚠️ Terjadi kesalahan! [WRONG FORMAT]\n\n${err}`)
+                })
+            break
+            case 'reverse':
+                if (args.length < 1) return client.reply(from, '⚠️ Format salah! Ketik *$menu3* untuk penggunaan. [WRONG FORMAT]')
+                await client.sendText(from, args.join(' ').split('').reverse().join(''))
+            break
+            case 'roll':
+            case 'dice':
+                let roll = Math.floor(Math.random() * 6) + 1
+                await client.reply(from, `Kamu mendapatkan angka *${roll}*.`)
+            break
+            case 'say':
+            case 'talk':
+                const sayMessage = args.join(' ')
+                if (!sayMessage) return client.reply(from, '⚠️ Format salah! Ketik *$menu3* untuk penggunaan. [WRONG FORMAT]')
+                await client.sendText(from, sayMessage)
+            break
+        
+            // Utility
+            case 'clock':
+            case 'jam':
+            case 'waktu':
+                await client.sendText(from, `Waktu Indonesia Barat: *${moment().utcOffset('+0700').format('HH:mm')}* WIB \nWaktu Indonesia Tengah: *${moment().utcOffset('+0800').format('HH:mm')}* WITA \nWaktu Indonesia Timur: *${moment().utcOffset('+0900').format('HH:mm')}* WIT`)
+            break
+            case 'delete':
+            case 'del':
+                if (!quotedMsg) return client.reply(from, '⚠️ Format salah! Ketik *$menu4* untuk penggunaan. [WRONG FORMAT]', id)
+                if (!quotedMsgObj.fromMe) return client.reply(from, '⚠️ Format salah! Ketik *$menu4* untuk penggunaan. [WRONG FORMAT]', id)
+                await client.deleteMessage(quotedMsgObj.chatId, quotedMsgObj.id, false)
+            break
+            case 'donate':
+            case 'donasi':
+                await client.sendText(from,menuId.donate())
+            break
+            case 'menuhide':
+            case 'helphide':
+                await client.sendText(from, menuId.textMenu())
+            break
+            case 'menu1':
+                await client.sendText(from, menuId.textMenu1())
+            break
+            case 'menu2':
+                await client.sendText(from, menuId.textMenu2())
+            break
+            case 'menu3':
+                await client.sendText(from, menuId.textMenu3())
+            break
+            case 'menu4':
+                await client.sendText(from, menuId.textMenu4())
+            break
+            case 'menu5':
+                await client.sendText(from, menuId.textMenu5())
+            break
+            case 'menu':
+                await client.sendText(from, menuId.textMenuAll())
+            break
+            case 'speed':
+            case 'ping':
+            case 'p':
+                await client.sendText(from, `Pong!!!!\nSpeed: ${processTime(t, moment())} detik`)
+            break
+            case 'readme':
+            case 'tnc':
+                await client.sendText(from, menuId.textReadme())
+            break
+            case 'server':
+                await client.sendText(from,`Penggunaan RAM: *${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}MB / ${Math.round(require('os').totalmem / 1024 / 1024)}MB*\nCPU: ${os.cpus().length}@${os.cpus()[0].model}`)
+            break
+            case 'status':
+            case 'stats':
+                const loadedMsg = await client.getAmountOfLoadedMessages()
+                const chatIds = await client.getAllChatIds()
+                const groups = await client.getAllGroups()
+                await client.sendText(from, `Status :\n- *${loadedMsg}* Message terload\n- *${groups.length}* Group\n- *${chatIds.length - groups.length}* Private chat\n- *${chatIds.length}* Total chat`)
+            break
+
+            // Weeb Zone
+            case 'wait':
+                if ((isMedia || isQuotedImage) && args.length === 0) {
+                    const fetch = require('node-fetch')
+                    const encryptMedia = isQuotedImage ? quotedMsg : message
+                    const _mimetype = isQuotedImage ? quotedMsg.mimetype : mimetype
+                    const mediaData = await decryptMedia(encryptMedia, uaOverride)
+                    const imageBase64 = `data:${_mimetype};base64,${mediaData.toString('base64')}`
+                    await client.reply(from, '_Mohon tunggu sebentar ya daling, proses ini akan memakan waktu beberapa menit..._\n\nMerasa terbantu karena bot ini? Bantu saya dengan cara donasi melalui:\n085866040557 (DANA)\n\nTerima kasih 🙏', id)
+                    fetch('https://trace.moe/api/search', {
+                        method: 'POST',
+                        body: JSON.stringify({ image: imageBase64 }),
+                        headers: { "Content-Type": "application/json" }
+                    })
+                    .then(respon => respon.json())
+                    .then(resolt => {
+                        if (resolt.docs && resolt.docs.length <= 0) {
+                            client.reply(from, '😔 Maaf, saya tidak tau anime ini.', id)
+                        }
+                        const { title, title_chinese, title_romaji, title_english, episode, similarity, filename, at, tokenthumb, anilist_id } = resolt.docs[0]
+                        teks = ''
+                        if (similarity < 0.92) {
+                            teks = '🤨 Tingkat kesamaan rendah:\n'
+                        }
+                        teks += `Title: ${title}\nTitle Chinese: ${title_chinese}\nTitle Romaji: ${title_romaji}\nTitle English: ${title_english}\n`
+                        teks += `Episode: ${episode.toString()}\n`
+                        teks += `Tingkat Kesamaan: ${(similarity * 100).toFixed(1)}%\n`
+                        var video = `https://media.trace.moe/video/${anilist_id}/${encodeURIComponent(filename)}?t=${at}&token=${tokenthumb}`;
+                            client.sendFileFromUrl(from, video, 'anime.mp4', teks, id)
+                        })
+                    .catch((err) => {
+                        console.error(err)
+                        client.reply(from, `⚠️ Terjadi kesalahan! [WRONG FORMAT]\n\n${err}`)
+                    })
                 }
-                const link = shorts.map((x) => `${x.resolution} Quality: ${x.short}`)
-                const caption = `Text: ${title} \n\nLink Download: \n${link.join('\n')} \n\nProcessed for ${processTime(t, moment())} _Second_`
-                await client.sendFileFromUrl(from, thumbnail, 'videos.jpg', caption, null, null, true)
-                    .then((serialized) => console.log(`Sukses Mengirim File dengan id: ${serialized} diproses selama ${processTime(t, moment())}`))
-                    .catch((err) => console.error(err))
-            })
-                .catch((err) => client.reply(from, `Error, url tidak valid atau tidak memuat video. [Invalid Link or No Video] \n\n${err}`, id))
             break
-        // Other Command
-        case 'meme':
-            if ((isMedia || isQuotedImage) && args.length >= 2) {
-                const top = arg.split('|')[0]
-                const bottom = arg.split('|')[1]
-                const encryptMedia = isQuotedImage ? quotedMsg : message
-                const mediaData = await decryptMedia(encryptMedia, uaOverride)
-                const getUrl = await uploadImages(mediaData, false)
-                const ImageBase64 = await meme.custom(getUrl, top, bottom)
-                client.sendFile(from, ImageBase64, 'image.png', '', null, true)
-                    .then((serialized) => console.log(`Sukses Mengirim File dengan id: ${serialized} diproses selama ${processTime(t, moment())}`))
-                    .catch((err) => console.error(err))
-            } else {
-                await client.reply(from, 'Tidak ada gambar! Untuk membuka cara penggnaan kirim #menu [Wrong Format]', id)
-            }
+            case 'waifu':
+                await client.reply(from, '_Mohon tunggu sebentar ya daling, proses ini akan memakan waktu beberapa menit..._\n\nMerasa terbantu karena bot ini? Bantu saya dengan cara donasi melalui:\n085866040557 (DANA)\n\nTerima kasih 🙏', id)
+                waifu.random()
+                    .then(({ url }) => {
+                        client.sendFileFromUrl(from, url, 'waifu.jpg', null, null, true)
+                    })
+                    .catch((err) => {
+                        console.error(err)
+                        client.reply(from, `⚠️ Terjadi kesalahan! [ERR]\n\n${err}`)
+                    })
+                break
+
+            // Hidden
+            case 'hidden':
+                await client.sendText(from, menuId.hiddenMenu())
             break
-        case 'resi':
-            if (args.length !== 2) return client.reply(from, 'Maaf, format pesan salah silahkan periksa menu. [Wrong Format]', id)
-            const kurirs = ['jne', 'pos', 'tiki', 'wahana', 'jnt', 'rpx', 'sap', 'sicepat', 'pcp', 'jet', 'dse', 'first', 'ninja', 'lion', 'idl', 'rex']
-            if (!kurirs.includes(args[0])) return client.sendText(from, `Maaf, jenis ekspedisi pengiriman tidak didukung layanan ini hanya mendukung ekspedisi pengiriman ${kurirs.join(', ')} Tolong periksa kembali.`)
-            console.log('Memeriksa No Resi', args[1], 'dengan ekspedisi', args[0])
-            cekResi(args[0], args[1]).then((result) => client.sendText(from, result))
+
+            // NSFW
+            case 'fetish':
+                let request = args.join(' ')
+                client.reply(from, '_Mohon tunggu sebentar ya daling, proses ini akan memakan waktu beberapa menit..._\n\nMerasa terbantu karena bot ini? Bantu saya dengan cara donasi melalui:\n085866040557 (DANA)\n\nTerima kasih 🙏', id)
+
+                if (args.length !== 1) {
+                    return client.reply(from, '⚠️ Silakan masukkan tag yang tersedia di *$hidden*! [WRONG FORMAT]')
+                } else if (request === 'armpits') {
+                    fetish.armpits()
+                        .then(({subreddit, title, url, author}) => {
+                            client.sendFileFromUrl(from, `${url}`, 'fetish.jpg', `${title}\nTag: r/${subreddit}\nAuthor: u/${author}`, null, null, true)
+                        })
+                        .catch((err) => console.error(err))
+                } else if (request === 'feets') {
+                    fetish.feets()
+                        .then(({subreddit, title, url, author}) => {
+                            client.sendFileFromUrl(from, `${url}`, 'fetish.jpg', `${title}\nTag: r/${subreddit}\nAuthor: u/${author}`, null, null, true)
+                        })
+                        .catch((err) => console.error(err))
+                } else if (request === 'thighs') {
+                    fetish.thighs()
+                        .then(({subreddit, title, url, author}) => {
+                            client.sendFileFromUrl(from, `${url}`, 'fetish.jpg', `${title}\nTag: r/${subreddit}\nAuthor: u/${author}`, null, null, true)
+                        })
+                        .catch((err) => console.error(err))
+                } else if (request === 'booty') {
+                    fetish.booty()
+                        .then(({subreddit, title, url, author}) => {
+                            client.sendFileFromUrl(from, `${url}`, 'fetish.jpg', `${title}\nTag: r/${subreddit}\nAuthor: u/${author}`, null, null, true)
+                        })
+                        .catch((err) => console.error(err))
+                } else if (request === 'boobs') {
+                    fetish.boobs()
+                        .then(({subreddit, title, url, author}) => {
+                            client.sendFileFromUrl(from, `${url}`, 'fetish.jpg', `${title}\nTag: r/${subreddit}\nAuthor: u/${author}`, null, null, true)
+                        })
+                        .catch((err) => console.error(err))
+                } else if (request === 'necks') {
+                    fetish.necks()
+                        .then(({subreddit, title, url, author}) => {
+                            client.sendFileFromUrl(from, `${url}`, 'fetish.jpg', `${title}\nTag: r/${subreddit}\nAuthor: u/${author}`, null, null, true)
+                        })
+                        .catch((err) => console.error(err))
+                } else if (request === 'belly') {
+                    fetish.belly()
+                        .then(({subreddit, title, url, author}) => {
+                            client.sendFileFromUrl(from, `${url}`, 'fetish.jpg', `${title}\nTag: r/${subreddit}\nAuthor: u/${author}`, null, null, true)
+                        })
+                        .catch((err) => console.error(err))
+                } else if (request === 'sideboobs') {
+                    fetish.sideboobs()
+                        .then(({subreddit, title, url, author}) => {
+                            client.sendFileFromUrl(from, `${url}`, 'fetish.jpg', `${title}\nTag: r/${subreddit}\nAuthor: u/${author}`, null, null, true)
+                        })
+                        .catch((err) => console.error(err))
+                } else if (request === 'ahegao') {
+                    fetish.ahegao()
+                        .then(({subreddit, title, url, author}) => {
+                            client.sendFileFromUrl(from, `${url}`, 'fetish.jpg', `${title}\nTag: r/${subreddit}\nAuthor: u/${author}`, null, null, true)
+                        })
+                        .catch((err) => console.error(err))
+                } else {
+                    client.reply(from, '🙏 Maaf tag belum tersedia. Silakan request. [TAG NOT FOUND]')
+                }
             break
-        case 'translate':
-            if (args.length != 1) return client.reply(from, 'Maaf, format pesan salah silahkan periksa menu. [Wrong Format]', id)
-            if (!quotedMsg) return client.reply(from, 'Maaf, format pesan salah silahkan periksa menu. [Wrong Format]', id)
-            const quoteText = quotedMsg.type == 'chat' ? quotedMsg.body : quotedMsg.type == 'image' ? quotedMsg.caption : ''
-            translate(quoteText, args[0])
-                .then((result) => client.sendText(from, result))
-                .catch(() => client.sendText(from, 'Error, Kode bahasa salah.'))
+            case 'lewds':
+            case 'lewd':
+                client.reply(from, '_Mohon tunggu sebentar ya daling, proses ini akan memakan waktu beberapa menit..._\n\nMerasa terbantu karena bot ini? Bantu saya dengan cara donasi melalui:\n085866040557 (DANA)\n\nTerima kasih 🙏', id)
+                lewd.random()
+                .then(({ subreddit, title, url, author }) => {
+                    client.sendFileFromUrl(from, `${url}`, 'lewd.jpg', `${title}\nTag: r/${subreddit}\nAuthor: u/${author}`, null, null, true)
+                    .then(() => console.log('Berhasil mengirim file!'))
+                    .catch((err) => console.log(err))
+                })
+                .catch((err) => {
+                    console.error(err)
+                    client.reply(from, `⚠️ Terjadi kesalahan! [ERR]\n\n${err}`)
+                })
             break
-        case 'ceklokasi':
-            if (quotedMsg.type !== 'location') return client.reply(from, 'Maaf, format pesan salah silahkan periksa menu. [Wrong Format]', id)
-            console.log(`Request Status Zona Penyebaran Covid-19 (${quotedMsg.lat}, ${quotedMsg.lng}).`)
-            const zoneStatus = await getLocationData(quotedMsg.lat, quotedMsg.lng)
-            if (zoneStatus.kode !== 200) client.sendText(from, 'Maaf, Terjadi error ketika memeriksa lokasi yang anda kirim.')
-            let data = ''
-            for (let i = 0; i < zoneStatus.data.length; i++) {
-                const { zone, region } = zoneStatus.data[i]
-                const _zone = zone == 'green' ? 'Hijau* (Aman) \n' : zone == 'yellow' ? 'Kuning* (Waspada) \n' : 'Merah* (Bahaya) \n'
-                data += `${i + 1}. Kel. *${region}* Berstatus *Zona ${_zone}`
-            }
-            const text = `*CEK LOKASI PENYEBARAN COVID-19*\nHasil pemeriksaan dari lokasi yang anda kirim adalah *${zoneStatus.status}* ${zoneStatus.optional}\n\nInformasi lokasi terdampak disekitar anda:\n${data}`
-            client.sendText(from, text)
+            case 'multilewds':
+            case 'multilewd':
+                client.reply(from, '_Mohon tunggu sebentar ya daling, proses ini akan memakan waktu beberapa menit..._\n\nMerasa terbantu karena bot ini? Bantu saya dengan cara donasi melalui:\n085866040557 (DANA)\n\nTerima kasih 🙏', id)
+                lewd.random()
+                .then(({ memes }) => {
+                    for (i = 0; i < memes.length; i++) {
+                        let sauce = memes[i]
+                        client.sendFileFromUrl(from, sauce.url, 'lewd.jpg', '', null, null, true)
+                        .then(() => console.log('Berhasil mengirim file!'))
+                        .catch((err) => console.log(err))
+                    }
+                })
+                .catch((err) => {
+                    console.error(err)
+                    client.reply(from, `⚠️ Terjadi kesalahan! [ERR]\n\n${err}`)
+                })
             break
-        // Group Commands (group admin only)
-        case 'kick':
-            if (!isGroupMsg) return client.reply(from, 'Maaf, perintah ini hanya dapat dipakai didalam grup! [Group Only]', id)
-            if (!isGroupAdmins) return client.reply(from, 'Gagal, perintah ini hanya dapat digunakan oleh admin grup! [Admin Group Only]', id)
-            if (!isBotGroupAdmins) return client.reply(from, 'Gagal, silahkan tambahkan bot sebagai admin grup! [Bot Not Admin]', id)
-            if (mentionedJidList.length === 0) return client.reply(from, 'Maaf, format pesan salah silahkan periksa menu. [Wrong Format]', id)
-            if (mentionedJidList[0] === botNumber) return await client.reply(from, 'Maaf, format pesan salah silahkan periksa menu. [Wrong Format]', id)
-            await client.sendTextWithMentions(from, `Request diterima, mengeluarkan:\n${mentionedJidList.map(x => `@${x.replace('@c.us', '')}`).join('\n')}`)
-            for (let i = 0; i < mentionedJidList.length; i++) {
-                if (groupAdmins.includes(mentionedJidList[i])) return await client.sendText(from, 'Gagal, kamu tidak bisa mengeluarkan admin grup.')
-                await client.removeParticipant(groupId, mentionedJidList[i])
-            }
+
+            // Group commands (admin only)
+            case 'add':
+                const user = args.join(' ')
+                if (!isGroupMsg) return client.reply(from, '❌ Command ini hanya bisa digunakan di group saja! [GROUP ONLY]', id)
+                if (!isGroupAdmins) return client.reply(from, '❌ Hanya admin yang bisa menggunakan command ini! [ADMIN ONLY]', id)
+                if (!isBotGroupAdmins) return client.reply(from, '❌ Jadikan saya admin terlebih dahulu! [NOT ADMIN]', id)
+                if (!user || args.length > 1) return client.reply(from, '⚠️ Format salah! Ketik *$admin* untuk penggunaan. [WRONG FORMAT]', id)
+                try {
+                    await client.addParticipant(from, `${user}@c.us`)
+                    .then(() => client.sendText(from, '🎉 Selamat datang! 🎉'))
+                } catch (err) {
+                    console.error(err)
+                    client.reply(from, `⚠️ Terjadi kesalahan saat menambah member! [ERR]\n\n${err}`)
+                }
             break
-        case 'promote':
-            if (!isGroupMsg) return await client.reply(from, 'Maaf, perintah ini hanya dapat dipakai didalam grup! [Group Only]', id)
-            if (!isGroupAdmins) return await client.reply(from, 'Gagal, perintah ini hanya dapat digunakan oleh admin grup! [Admin Group Only]', id)
-            if (!isBotGroupAdmins) return await client.reply(from, 'Gagal, silahkan tambahkan bot sebagai admin grup! [Bot not Admin]', id)
-            if (mentionedJidList.length != 1) return client.reply(from, 'Maaf, format pesan salah silahkan periksa menu. [Wrong Format, Only 1 user]', id)
-            if (groupAdmins.includes(mentionedJidList[0])) return await client.reply(from, 'Maaf, user tersebut sudah menjadi admin. [Bot is Admin]', id)
-            if (mentionedJidList[0] === botNumber) return await client.reply(from, 'Maaf, format pesan salah silahkan periksa menu. [Wrong Format]', id)
-            await client.promoteParticipant(groupId, mentionedJidList[0])
-            await client.sendTextWithMentions(from, `Request diterima, menambahkan @${mentionedJidList[0].replace('@c.us', '')} sebagai admin.`)
+            case 'admin':
+                if (!isGroupMsg) return client.reply(from, '❌ Command ini hanya bisa digunakan di group saja! [GROUP ONLY]', id)
+                if (!isGroupAdmins) return client.reply(from, '❌ Hanya admin yang bisa menggunakan command ini! [ADMIN ONLY]', id)
+                await client.sendText(from, menuId.textAdmin())
             break
-        case 'demote':
-            if (!isGroupMsg) return client.reply(from, 'Maaf, perintah ini hanya dapat dipakai didalam grup! [Group Only]', id)
-            if (!isGroupAdmins) return client.reply(from, 'Gagal, perintah ini hanya dapat digunakan oleh admin grup! [Admin Group Only]', id)
-            if (!isBotGroupAdmins) return client.reply(from, 'Gagal, silahkan tambahkan bot sebagai admin grup! [Bot not Admin]', id)
-            if (mentionedJidList.length !== 1) return client.reply(from, 'Maaf, format pesan salah silahkan periksa menu. [Wrong Format, Only 1 user]', id)
-            if (!groupAdmins.includes(mentionedJidList[0])) return await client.reply(from, 'Maaf, user tersebut tidak menjadi admin. [user not Admin]', id)
-            if (mentionedJidList[0] === botNumber) return await client.reply(from, 'Maaf, format pesan salah silahkan periksa menu. [Wrong Format]', id)
-            await client.demoteParticipant(groupId, mentionedJidList[0])
-            await client.sendTextWithMentions(from, `Request diterima, menghapus jabatan @${mentionedJidList[0].replace('@c.us', '')}.`)
+            case 'bye':
+            case 'out':
+            case 'leave':
+                if (!isGroupMsg) return client.reply(from, '❌ Command ini hanya bisa digunakan di group saja! [GROUP ONLY]', id)
+                if (!isGroupAdmins) return client.reply(from, '❌ Hanya admin yang bisa menggunakan command ini! [ADMIN ONLY]', id)
+                client.sendText(from, '👋 Bye-bye!').then(() => client.leaveGroup(groupId))
             break
-        case 'bye':
-            if (!isGroupMsg) return client.reply(from, 'Maaf, perintah ini hanya dapat dipakai didalam grup! [Group Only]', id)
-            if (!isGroupAdmins) return client.reply(from, 'Gagal, perintah ini hanya dapat digunakan oleh admin grup! [Admin Group Only]', id)
-            client.sendText(from, 'Good bye... ( ⇀‸↼‶ )').then(() => client.leaveGroup(groupId))
+            case 'demote':
+                if (!isGroupMsg) return client.reply(from, '❌ Command ini hanya bisa digunakan di group saja!', id)
+                if (!isGroupAdmins) return client.reply(from, '❌ Hanya admin yang bisa menggunakan command ini! [ADMIN ONLY]', id)
+                if (!isBotGroupAdmins) return client.reply(from, '❌ Jadikan saya admin terlebih dahulu! [NOT ADMIN]', id)
+                if (mentionedJidList.length !== 1) return client.reply(from, '⚠️ Format salah! Ketik *$admin* untuk penggunaan. [WRONG FORMAT]', id)
+                if (!groupAdmins.includes(mentionedJidList[0])) return await client.reply(from, '❌ Dia bukan admin, gimana gw demote-nya? [USER NOT AN ADMIN]', id)
+                if (mentionedJidList[0] === botNumber) return await client.reply(from, '⚠️ Format salah! Ketik *$admin* untuk penggunaan. [WRONG FORMAT]', id)
+                await client.demoteParticipant(groupId, mentionedJidList[0])
+                await client.sendTextWithMentions(from, `✅ Siap mint, anjay lengser @${mentionedJidList[0].replace('@c.us', '')}.`)
             break
-        case 'del':
-            if (!isGroupAdmins) return client.reply(from, 'Gagal, perintah ini hanya dapat digunakan oleh admin grup! [Admin Group Only]', id)
-            if (!quotedMsg) return client.reply(from, 'Maaf, format pesan salah silahkan periksa menu. [Wrong Format]', id)
-            if (!quotedMsgObj.fromMe) return client.reply(from, 'Maaf, format pesan salah silahkan periksa menu. [Wrong Format]', id)
-            client.deleteMessage(quotedMsgObj.chatId, quotedMsgObj.id, false)
+            case 'kick':
+                if (!isGroupMsg) return client.reply(from, '❌ Command ini hanya bisa digunakan di group saja! [GROUP ONLY]', id)
+                if (!isGroupAdmins) return client.reply(from, '❌ Hanya admin yang bisa menggunakan command ini! [ADMIN ONLY]', id)
+                if (!isBotGroupAdmins) return client.reply(from, '❌ Jadikan saya admin terlebih dahulu! [NOT ADMIN]', id)
+                if (mentionedJidList.length === 0) return client.reply(from, '⚠️ Format salah! Ketik *$admin* untuk penggunaan. [WRONG FORMAT]', id)
+                if (mentionedJidList[0] === botNumber) return await client.reply(from, '⚠️ Format salah! Ketik *$admin* untuk penggunaan. [WRONG FORMAT]', id)
+                await client.sendTextWithMentions(from, `✅ Siap mint, wisuda lu:\n${mentionedJidList.map(x => `@${x.replace('@c.us', '')}`).join('\n')}`)
+                for (let i = 0; i < mentionedJidList.length; i++) {
+                    if (groupAdmins.includes(mentionedJidList[i])) return await client.sendText(from, '❌ Gak bisa kick admin gw bro [NOT ALLOWED]')
+                    await client.removeParticipant(groupId, mentionedJidList[i])
+                }
+            break   
+            case 'linkgrup':
+            case 'linkgroup':
+                if (!isGroupMsg) return await client.reply(from, '❌ Command ini hanya bisa digunakan di group saja! [GROUP ONLY]', id)
+                if (!isGroupAdmins) return await client.reply(from, '❌ Hanya admin yang bisa menggunakan command ini! [ADMIN ONLY]', id)
+                if (!isBotGroupAdmins) return await client.reply(from, '❌ Jadikan saya admin terlebih dahulu! [NOT ADMIN]', id)
+                if (isGroupMsg) {
+                    const inviteLink = await client.getGroupInviteLink(groupId)
+                    client.sendLinkWithAutoPreview(from, inviteLink, `\nLink group *${name}*`)
+                }
             break
-        case 'tagall':
-        case 'everyone':
-            /**
-            * This is Premium feature.
-            * Check premium feature at https://trakteer.id/red-emperor/showcase or chat Author for Information.
-            */
-            client.reply(from, 'ehhh, what\'s that???', id)
+            case 'promote':
+                if (!isGroupMsg) return await client.reply(from, '❌ Command ini hanya bisa digunakan di group saja! [GROUP ONLY]', id)
+                if (!isGroupAdmins) return await client.reply(from, '❌ Hanya admin yang bisa menggunakan command ini! [ADMIN ONLY]', id)
+                if (!isBotGroupAdmins) return await client.reply(from, '❌ Jadikan saya admin terlebih dahulu! [NOT ADMIN]', id)
+                if (mentionedJidList.length != 1) return client.reply(from, '⚠️ Format salah! Ketik *$admin* untuk penggunaan. [WRONG FORMAT]', id)
+                if (groupAdmins.includes(mentionedJidList[0])) return await client.reply(from, '❌ Dia udah jadi admin njir [ADMIN ALREADY]', id)
+                if (mentionedJidList[0] === botNumber) return await client.reply(from, '⚠️ Format salah! Ketik *$admin* untuk penggunaan.', id)
+                await client.promoteParticipant(groupId, mentionedJidList[0])
+                await client.sendTextWithMentions(from, `✅ Siap mint, anjay sekarang @${mentionedJidList[0].replace('@c.us', '')} jadi admin.`)
             break
-        case 'botstat': {
-            const loadedMsg = await client.getAmountOfLoadedMessages()
-            const chatIds = await client.getAllChatIds()
-            const groups = await client.getAllGroups()
-            client.sendText(from, `Status :\n- *${loadedMsg}* Loaded Messages\n- *${groups.length}* Group Chats\n- *${chatIds.length - groups.length}* Personal Chats\n- *${chatIds.length}* Total Chats`)
-            break
-        }
-        default:
-            console.log(color('[ERROR]', 'red'), color(moment(t * 1000).format('DD/MM/YY HH:mm:ss'), 'yellow'), 'Unregistered Command from', color(pushname))
+            
+            default:
+                console.log(color('[ERROR]', 'red'), color(moment(t * 1000).format('DD/MM/YY HH:mm:ss'), 'yellow'), 'Unregistered command from', color(pushname))
+                client.reply(from, '❓ Command tidak ditemukan, silakan cek kembali atau ketik *$menu* untuk melihat list command yang tersedia. [COMMAND NOT FOUND]')
             break
         }
     } catch (err) {
